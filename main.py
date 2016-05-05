@@ -29,3 +29,4 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
 triangles = triangulate_rectangle(nodes_coords)
+print(triangles)
