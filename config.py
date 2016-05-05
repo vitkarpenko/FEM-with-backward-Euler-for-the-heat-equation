@@ -14,4 +14,8 @@ grid_density = 5
 # общее количество узлов
 nNod = grid_density ** 2
 
+# шаг th по времени постоянен
+# отсчёт начинается с t0 = 0
+t_max = 2
 timesteps = 10
+th = t_max / timesteps

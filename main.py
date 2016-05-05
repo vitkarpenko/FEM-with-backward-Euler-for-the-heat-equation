@@ -3,22 +3,44 @@ from config import *
 
 def generate_nodes(x_min, x_max, y_min, y_max, grid_density):
     '''Разделяет пластинку на равномерную прямоугольную сетку.
-    grid_density шагов на каждой стороне.'''
+    grid_density шагов на каждой стороне.
+    '''
     nodes = np.dstack((np.linspace(x_min, x_max, grid_density),
-                        np.full(grid_density, y_min, dtype='float')))[0]
+                        np.full(grid_density, y_max, dtype='float')))[0]
     for i in range(1, grid_density):
         c = i / (grid_density - 1)
         nodes = np.concatenate((nodes, np.dstack((np.linspace(x_min, x_max, grid_density),
-                                                    np.full(grid_density, y_min + (y_max - y_min) * c,
+                                                    np.full(grid_density, y_max - (y_max - y_min) * c,
                                                                 dtype='float')))[0]), axis=0)
     return nodes
 
 
 def triangulate_rectangle(nodes):
-    '''Триангулирует пластинку по заданным узлам методом Делоне.'''
+    '''Триангулирует пластинку по заданным узлам методом Делоне.
+    '''
     tri = scipy.spatial.Delaunay(nodes)
     return tri.simplices.copy()
 
+
+def N(a, K, x, y):
+    '''Узловая базисная функция в треугольнике с номером K, в узле с локальным номером a
+    в точке (x, y). Вычисляется с помощью перехода к опорному элементу
+    с узлами (0, 0), (0, 1), (1, 0).
+    '''
+    global triangles
+    global nodes_coords
+    # определяем координаты треугольника
+    x1, y1, x2, y2, x3, y3 = nodes_coords[triangles[K]].flatten()
+    # вычисляем координаты u, v в опорном элементе по x, y с помощью афинного преобразования
+    u, v = (np.linalg.inv(np.array([[x2 - x1, x3 - x1], [y2 - y1, y3 - y1]]))
+               @ np.array([x - x1, y - y1]))
+    # возвращаем результат в зависимости от номера базисной функции
+    if a == 0:
+        return 1 - u - v
+    elif a == 1:
+        return u
+    elif a == 2:
+        return v
 
 # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
 # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
@@ -29,4 +51,7 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
 triangles = triangulate_rectangle(nodes_coords)
-print(triangles)
+plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
+plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
+plt.show()
+
