@@ -27,8 +27,6 @@ def N(a, K, x, y):
     в точке (x, y). Вычисляется с помощью перехода к опорному элементу
     с узлами (0, 0), (0, 1), (1, 0).
     '''
-    global triangles
-    global nodes_coords
     # определяем координаты треугольника
     x1, y1, x2, y2, x3, y3 = nodes_coords[triangles[K]].flatten()
     # вычисляем координаты u, v в опорном элементе по x, y с помощью афинного преобразования
@@ -42,6 +40,32 @@ def N(a, K, x, y):
     elif a == 2:
         return v
 
+def grad_N(a, K, x, y):
+    '''Градиент узловой базисной функции в треугольнике с номером K, в узле с локальным номером a
+    в точке (x, y). Вычисляется с помощью перехода к опорному элементу
+    с узлами (0, 0), (0, 1), (1, 0).
+    '''
+    # градиенты базисных угловых функций в опорном элементе
+    # определяем координаты треугольника
+    x1, y1, x2, y2, x3, y3 = nodes_coords[triangles[K]].flatten()
+    # матрица преобразования
+    B = (np.array([[y3 - y1, -(y2 - y1)], [-(x3 - x1), x2 - x1]])
+        / ((x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1)))
+    # возвращаем результат в зависимости от номера базисной функции
+    if a == 0:
+        return B @ np.array([-1, -1])
+    elif a == 1:
+        return B @ np.array([1, 0])
+    elif a == 2:
+        return B @ np.array([0, 1])
+
+
+def triangle_mass_stiff_matrix(K):
+    '''Вычисляет базовую матрицу (см. отчёт) с максимум 9 ненулевыми элементами
+    для треугольника с номером K по квадратурным формулам.'''
+    pass
+
+
 # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
 # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
 nodes_coords = generate_nodes(x_min, x_max, y_min, y_max, grid_density)
@@ -51,6 +75,7 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
 triangles = triangulate_rectangle(nodes_coords)
+print(grad_N(1, 0, 0, 0.8))
 plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
 plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
 plt.show()
