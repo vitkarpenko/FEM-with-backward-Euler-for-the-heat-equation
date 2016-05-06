@@ -73,15 +73,21 @@ def triangle_mass_stiff_matrix(K):
     x1, y1, x2, y2, x3, y3 = nodes_coords[triangles[K]].flatten()
     area = np.abs(((x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1))) / 2
     # инициализируем матрицу нулями
-    W_K = np.zeros((nNod, nNod))
+    T_K = np.zeros((nNod, nNod))
     for i in range(3):
         for j in range(3):
-            W_K[tri_nums[i]][tri_nums[j]] = (th * area
+            T_K[tri_nums[i]][tri_nums[j]] = (th * area
                 * grad_N(i, K, *tri_coords[i]) @ grad_N(j, K, *tri_coords[j])
                     + area / 3 * (N(i, K, *middles[0]) * N(j, K, *middles[0])
                              + N(i, K, *middles[1]) * N(j, K, *middles[1])
                              + N(i, K, *middles[2]) * N(j, K, *middles[2])))
-    return W_K
+    return T_K
+
+
+def main_matrix():
+    T = np.zeros((nNod, nNod))
+    return np.sum(triangle_mass_stiff_matrix(K) for K in range(len(triangles)))
+
 
 # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
 # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
@@ -92,7 +98,7 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
 triangles = triangulate_rectangle(nodes_coords)
-
+print(main_matrix())
 '''plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
 plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
 plt.show()'''
