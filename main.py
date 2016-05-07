@@ -89,6 +89,10 @@ def main_matrix():
     return np.sum(triangle_mass_stiff_matrix(K) for K in range(len(triangles)))
 
 
+def g():
+    pass
+
+
 # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
 # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
 nodes_coords = generate_nodes(x_min, x_max, y_min, y_max, grid_density)
@@ -98,7 +102,10 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
 triangles = triangulate_rectangle(nodes_coords)
-print(main_matrix())
+T = main_matrix()
+T_dir = T[:, dir_nodes]
+T_ind = T[:, ind_nodes]
+
 '''plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
 plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
 plt.show()'''
