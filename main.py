@@ -98,8 +98,7 @@ def triangle_stiff_matrix(K):
     T_K = np.zeros((nNod, nNod))
     for i in range(3):
         for j in range(3):
-            T_K[tri_nums[i]][tri_nums[j]] = (th * area
-                                    * grad_N(i, K, *tri_coords[i]) @ grad_N(j, K, *tri_coords[j]))
+            T_K[tri_nums[i]][tri_nums[j]] = area * grad_N(i, K, *tri_coords[i]) @ grad_N(j, K, *tri_coords[j])
     return T_K
 
 
@@ -117,13 +116,13 @@ def M():
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.full(len(dir_nodes), 1, dtype='float')
+    return np.full(len(dir_nodes), -1, dtype='float')
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return - np.ones(nNod) / (800 * t**2)
+    return - np.ones(nNod) / (200 * t**2)
 
 
 def u0():
@@ -180,13 +179,13 @@ for i in range(timesteps):
     Y = np.arange(y_min, y_max, yh)
     X, Y = np.meshgrid(X, Y)
     u = step(u)
-    print(u)
     t += 1
-    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.inferno,
+    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.afmhot,
                        linewidth=0, antialiased=False)
-    ax.set_zlim(-20.01, 20.01)
+    ax.set_zlim(-1000.01, 3000.01)
 
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
+    plt.savefig("{}.png".format(t))
     plt.pause(1)
