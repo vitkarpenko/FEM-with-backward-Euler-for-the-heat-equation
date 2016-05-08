@@ -60,8 +60,8 @@ def grad_N(a, K, x, y):
         return B @ np.array([0, 1])
 
 
-def triangle_mass_stiff_matrix(K):
-    '''Вычисляет базовую матрицу (см. отчёт) с максимум 9 ненулевыми элементами
+def triangle_mass_matrix(K):
+    '''Вычисляет матрицу масс (см. отчёт) с максимум 9 ненулевыми элементами
     для треугольника с номером K по квадратурным формулам.
     '''
     # глобальные номера и координаты этих узлов треугольника
@@ -77,31 +77,53 @@ def triangle_mass_stiff_matrix(K):
     T_K = np.zeros((nNod, nNod))
     for i in range(3):
         for j in range(3):
-            T_K[tri_nums[i]][tri_nums[j]] = (th * area
-                * grad_N(i, K, *tri_coords[i]) @ grad_N(j, K, *tri_coords[j])
-                    + area / 3 * (N(i, K, *middles[0]) * N(j, K, *middles[0])
-                             + N(i, K, *middles[1]) * N(j, K, *middles[1])
-                             + N(i, K, *middles[2]) * N(j, K, *middles[2])))
+            T_K[tri_nums[i]][tri_nums[j]] += (area / 3
+                    * (N(i, K, *middles[0]) * N(j, K, *middles[0])
+                     + N(i, K, *middles[1]) * N(j, K, *middles[1])
+                     + N(i, K, *middles[2]) * N(j, K, *middles[2])))
     return T_K
 
 
-def main_matrix():
-    '''Основная матрица (см. отчёт).
+def triangle_stiff_matrix(K):
+    '''Вычисляет матрицу жёсткости (см. отчёт) с максимум 9 ненулевыми элементами
+    для треугольника с номером K по квадратурным формулам.
     '''
-    T = np.zeros((nNod, nNod))
-    return np.sum(triangle_mass_stiff_matrix(K) for K in range(len(triangles)))
+    # глобальные номера и координаты этих узлов треугольника
+    tri_nums = triangles[K]
+    tri_coords = nodes_coords[tri_nums]
+    # площадь треугольника
+    x1, y1, x2, y2, x3, y3 = nodes_coords[triangles[K]].flatten()
+    area = np.abs(((x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1))) / 2
+    # инициализируем матрицу нулями
+    T_K = np.zeros((nNod, nNod))
+    for i in range(3):
+        for j in range(3):
+            T_K[tri_nums[i]][tri_nums[j]] = (th * area
+                                    * grad_N(i, K, *tri_coords[i]) @ grad_N(j, K, *tri_coords[j]))
+    return T_K
 
+
+def W():
+    '''Основная матрица жёсткости (см. отчёт).
+    '''
+    return np.sum(triangle_stiff_matrix(K) for K in range(len(triangles)))
+
+
+def M():
+    '''Основная матрица масс (см. отчёт).
+    '''
+    return np.sum(triangle_mass_matrix(K) for K in range(len(triangles)))
 
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.full(len(dir_nodes), 3, dtype='float')
+    return np.full(len(dir_nodes), 1, dtype='float')
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return np.ones(nNod)
+    return - np.ones(nNod) / (800 * t**2)
 
 
 def u0():
@@ -112,15 +134,14 @@ def u0():
     return u0
 
 
-def step(u, t):
+def step(u):
     '''Получает следующий вектор значений из предыдущего u.
     '''
     # левая часть
     A = T
     # правая часть
-    b = T @ u - f(t + 1)
+    b = M @ u - f(t + 1)
     u_next = np.linalg.solve(A, b)
-    t += 1
     u_next[dir_nodes] = g(t + 1)
     return u_next
 
@@ -137,8 +158,10 @@ ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes]
 # триангулируем
 triangles = triangulate_rectangle(nodes_coords)
 
-# строим основную матрицу
-T = main_matrix()
+# строим основные матрицу
+M = M()
+W = W()
+T = M + W * th
 T_dir = T[:, dir_nodes]
 T_ind = T[:, ind_nodes]
 
@@ -146,10 +169,24 @@ T_ind = T[:, ind_nodes]
 t = 0
 u = u0()
 
-for i in range(4):
+# ==================================================================================================
+# строим графики
+plt.ion()
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+for i in range(timesteps):
+    ax.clear()
+    X = np.arange(x_min, x_max, xh)
+    Y = np.arange(y_min, y_max, yh)
+    X, Y = np.meshgrid(X, Y)
+    u = step(u)
     print(u)
-    print('='*20)
-    u = step(u, t)
-'''plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
-plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
-plt.show()'''
+    t += 1
+    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.inferno,
+                       linewidth=0, antialiased=False)
+    ax.set_zlim(-20.01, 20.01)
+
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+    plt.pause(1)
