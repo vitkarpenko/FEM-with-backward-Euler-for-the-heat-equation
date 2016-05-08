@@ -62,7 +62,8 @@ def grad_N(a, K, x, y):
 
 def triangle_mass_stiff_matrix(K):
     '''Вычисляет базовую матрицу (см. отчёт) с максимум 9 ненулевыми элементами
-    для треугольника с номером K по квадратурным формулам.'''
+    для треугольника с номером K по квадратурным формулам.
+    '''
     # глобальные номера и координаты этих узлов треугольника
     tri_nums = triangles[K]
     tri_coords = nodes_coords[tri_nums]
@@ -85,13 +86,48 @@ def triangle_mass_stiff_matrix(K):
 
 
 def main_matrix():
+    '''Основная матрица (см. отчёт).
+    '''
     T = np.zeros((nNod, nNod))
     return np.sum(triangle_mass_stiff_matrix(K) for K in range(len(triangles)))
 
 
-def g():
-    pass
+def g(t):
+    '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
+    '''
+    return np.full(len(dir_nodes), 3, dtype='float')
 
+
+def f(t):
+    '''Возвращает вектор значений f на шаге времени t.
+    '''
+    return np.zeros(nNod)
+
+
+def u0():
+    '''Начальные данные.
+    '''
+    u0 = np.zeros(nNod)
+    u0[dir_nodes] = 3
+    return u0
+
+
+def step(u, t):
+    '''Получает следующий вектор значений из предыдущего u.
+    '''
+    u_ind = u[:, ind_nodes]
+    # левая часть
+    A = T_ind
+    # правая часть
+    b = T @ u + T_dir @ g(t + 1) + f(t + 1)
+    u_ind = np.linalg.solve(A, b, permc_spec='NATURAL')
+    t += 1
+    u = np.zeros(nNod)
+    u[ind_nodes] = u_ind
+    u[dir_nodes] = g(t + 1)
+    return u
+
+# ==================================================================================================
 
 # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
 # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
@@ -101,11 +137,22 @@ dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in
                                                                 or j == 0 or j == grid_density - 1])
 ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
+# триангулируем
 triangles = triangulate_rectangle(nodes_coords)
+
+# строим основную матрицу
 T = main_matrix()
 T_dir = T[:, dir_nodes]
 T_ind = T[:, ind_nodes]
 
+# задаём начальные условия
+t = 0
+u = u0()
+
+for i in range(4):
+    print(u)
+    print('='*20)
+    u = step(u, t)
 '''plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
 plt.plot(nodes_coords[:,0], nodes_coords[:,1], 'o')
 plt.show()'''
