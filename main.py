@@ -101,7 +101,7 @@ def g(t):
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return np.zeros(nNod)
+    return np.ones(nNod)
 
 
 def u0():
@@ -115,17 +115,14 @@ def u0():
 def step(u, t):
     '''Получает следующий вектор значений из предыдущего u.
     '''
-    u_ind = u[:, ind_nodes]
     # левая часть
-    A = T_ind
+    A = T
     # правая часть
-    b = T @ u + T_dir @ g(t + 1) + f(t + 1)
-    u_ind = np.linalg.solve(A, b, permc_spec='NATURAL')
+    b = T @ u - f(t + 1)
+    u_next = np.linalg.solve(A, b)
     t += 1
-    u = np.zeros(nNod)
-    u[ind_nodes] = u_ind
-    u[dir_nodes] = g(t + 1)
-    return u
+    u_next[dir_nodes] = g(t + 1)
+    return u_next
 
 # ==================================================================================================
 
