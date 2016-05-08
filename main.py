@@ -116,13 +116,13 @@ def M():
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.full(len(dir_nodes), -1, dtype='float')
+    return np.full(len(dir_nodes), np.cos(t), dtype='float')
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return - np.ones(nNod) / (200 * t**2)
+    return - np.ones(nNod) / (200 * np.sin(t) * t)
 
 
 def u0():
@@ -187,5 +187,4 @@ for i in range(timesteps):
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-    plt.savefig("{}.png".format(t))
     plt.pause(1)
