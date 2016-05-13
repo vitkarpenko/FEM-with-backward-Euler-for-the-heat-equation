@@ -193,4 +193,3 @@ for i in range(timesteps):
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
     plt.pause(0.1)
-    plt.savefig('{:>03}.png'.format(i))
