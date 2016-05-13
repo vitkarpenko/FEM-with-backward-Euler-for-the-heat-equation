@@ -116,20 +116,20 @@ def M():
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.full(len(dir_nodes), np.cos(t), dtype='float')
+    return np.ones(len(dir_nodes))
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return - np.ones(nNod) / (200 * np.sin(t) * t)
+    return np.zeros(nNod)
 
 
 def u0():
     '''Начальные данные.
     '''
     u0 = np.zeros(nNod)
-    u0[dir_nodes] = 3
+    u0[4:10] = 5
     return u0
 
 
@@ -137,11 +137,13 @@ def step(u):
     '''Получает следующий вектор значений из предыдущего u.
     '''
     # левая часть
-    A = T
+    A = T[:, ind_nodes][ind_nodes, :]
     # правая часть
-    b = M @ u - f(t + 1)
-    u_next = np.linalg.solve(A, b)
-    u_next[dir_nodes] = g(t + 1)
+    b = M[ind_nodes, :] @ u - (W[:, dir_nodes][ind_nodes, :] * th + M[:, dir_nodes][ind_nodes, :]) @ g(t+1)
+    u_next_ind = np.linalg.solve(A, b)
+    u_next = np.zeros(nNod)
+    u_next[ind_nodes] = u_next_ind
+    u_next[dir_nodes] = g(t+1)
     return u_next
 
 # ==================================================================================================
@@ -175,16 +177,17 @@ fig = plt.figure()
 ax = fig.gca(projection='3d')
 for i in range(timesteps):
     ax.clear()
+    ax.text2D(0.05, 0.95, "t = {}".format(t), transform=ax.transAxes)
     X = np.arange(x_min, x_max, xh)
     Y = np.arange(y_min, y_max, yh)
     X, Y = np.meshgrid(X, Y)
     u = step(u)
-    t += 1
-    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.afmhot,
+    t += th
+    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.gnuplot,
                        linewidth=0, antialiased=False)
-    ax.set_zlim(-1000.01, 3000.01)
+    ax.set_zlim(-1000, 1000)
 
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-    plt.pause(1)
+    plt.pause(0.1)
