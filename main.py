@@ -116,20 +116,20 @@ def M():
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.ones(len(dir_nodes))
+    return np.sin(np.arange(len(dir_nodes))) * 5 / (1 + 10 * t)
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return np.zeros(nNod)
+    return np.sin(np.arange(len(ind_nodes))) / (1 + 10 * t)
 
 
 def u0():
     '''Начальные данные.
     '''
     u0 = np.zeros(nNod)
-    u0[4:10] = 5
+    u0[:] = 20
     return u0
 
 
@@ -139,7 +139,9 @@ def step(u):
     # левая часть
     A = T[:, ind_nodes][ind_nodes, :]
     # правая часть
-    b = M[ind_nodes, :] @ u - (W[:, dir_nodes][ind_nodes, :] * th + M[:, dir_nodes][ind_nodes, :]) @ g(t+1)
+    b = (M[ind_nodes, :] @ u
+        - (W[:, dir_nodes][ind_nodes, :] * th + M[:, dir_nodes][ind_nodes, :]) @ g(t+1)
+        - f(t))
     u_next_ind = np.linalg.solve(A, b)
     u_next = np.zeros(nNod)
     u_next[ind_nodes] = u_next_ind
@@ -185,9 +187,10 @@ for i in range(timesteps):
     t += th
     surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.gnuplot,
                        linewidth=0, antialiased=False)
-    ax.set_zlim(-1000, 1000)
+    ax.set_zlim(-10, 10)
 
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
     plt.pause(0.1)
+    plt.savefig('{:>03}.png'.format(i))
