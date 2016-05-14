@@ -1,11 +1,12 @@
 \documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+\renewcommand{\baselinestretch}{1.5}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1, T2A]{fontenc}
 \usepackage[russian]{babel}
 \usepackage{amsmath,amsfonts,amsthm} % Math packages
 
-\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{bm}
 
 \usepackage{sectsty} % Allows customizing section commands
 \allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
@@ -50,5 +51,16 @@
 \maketitle % Print the title
 
 \section{Постановка задачи}
-
+\subsection{Исходная дифференциальная задача}
+    \[
+        \begin{cases}
+            u_t = \bigtriangleup u + f& \text{на $\Omega \times (0, \inf)$,} \\
+            u(\cdot, 0) = u_0& \text{на $\Omega$}, \\
+            u(\cdot, 0) = g& \text{на $\Gamma$ для $\forall t > 0$,}
+        \end{cases}
+    \]
+Здесь $\Omega$ - квадратная область в плоскости $(x, y)$ с левым нижним углом в $(0, 0)$ и правым верхним в $(1, 1)$.
+$\Gamma$ - граница пластинки. Отсчёт времени начинается в $t_0 = 0$. Необходимо найти $u(\bm{x}, t) = u(x, y, t)$.
+\subsection{Дискретизация}
+Разбиение по времени может быть произвольным $0 = t_0 < t_1 < t_2 < ... < t_n < ...$, но в данном случае удобнее пользоваться постоянным шагом (это будет видно позже).
 \end{document}
