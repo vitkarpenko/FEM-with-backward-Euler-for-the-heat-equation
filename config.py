@@ -13,7 +13,7 @@ y_min = 0
 y_max = 1
 
 # на сколько частей делится каждая сторона пластинки при построении сетки
-grid_density = 30
+grid_density = 10
 xh = (x_max - x_min) / grid_density
 yh = (y_max - y_min) / grid_density
 
@@ -22,6 +22,6 @@ nNod = grid_density ** 2
 
 # шаг th по времени постоянен
 # отсчёт начинается с t0 = 0
-t_max = 5
-timesteps = 50
+t_max = 1
+timesteps = 10
 th = t_max / timesteps

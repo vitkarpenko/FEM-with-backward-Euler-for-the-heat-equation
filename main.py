@@ -128,9 +128,13 @@ def f(t):
 def u0():
     '''Начальные данные.
     '''
-    u0 = np.zeros(nNod)
-    u0[:] = 20
-    return u0
+    u0 = []
+    for i in range(grid_density):
+        for j in range(grid_density):
+            x = i / (grid_density - 1)
+            y = j / (grid_density - 1)
+            u0.append(x * (1 - x) * y * (1 - y))
+    return np.array(u0)
 
 
 def step(u):
@@ -147,6 +151,21 @@ def step(u):
     u_next[ind_nodes] = u_next_ind
     u_next[dir_nodes] = g(t+1)
     return u_next
+
+
+def u(x, y, t):
+    def _lambda(n, m):
+        return - (np.pi ** 2) * (n ** 2 + m ** 2)
+    def _sum(prec):
+        res = 0
+        for n in range(1, prec):
+            for m in range(prec):
+                res += (((-1) ** n - 1) * ((-1) ** m - 1)
+                        * np.exp ** (_lambda(n, m) * t)
+                        * np.sin(np.pi * x * n) * np.sin(np.pi * y * m)
+                        / n ** 3 / m ** 3)
+        return res
+    return 16 / (np.pi ** 6) * _sum(5)
 
 # ==================================================================================================
 
@@ -171,14 +190,13 @@ T_ind = T[:, ind_nodes]
 # задаём начальные условия
 t = 0
 u = u0()
-u_maxes = [max(u)]
 # ==================================================================================================
 # строим графики
-#plt.ion()
-#fig = plt.figure()
-#ax = fig.gca(projection='3d')
+plt.ion()
+fig = plt.figure()
+ax = fig.gca(projection='3d')
 for i in range(timesteps):
-    '''ax.clear()
+    ax.clear()
     ax.text2D(0.05, 0.95, "t = {:0.3g}".format(t), transform=ax.transAxes)
     X = np.arange(x_min, x_max, xh)
     Y = np.arange(y_min, y_max, yh)
@@ -187,14 +205,9 @@ for i in range(timesteps):
     t += th
     surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.gnuplot,
                        linewidth=0, antialiased=False)
-    ax.set_zlim(-10, 10)
+    ax.set_zlim(-0.1, 0.1)
 
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-    plt.pause(0.1)'''
-    u = step(u)
-    t += th
-    u_maxes.append(max(u))
-plt.plot(u_maxes)
-plt.show()
+    plt.pause(0.3)
