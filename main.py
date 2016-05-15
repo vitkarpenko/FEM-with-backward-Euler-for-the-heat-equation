@@ -116,13 +116,13 @@ def M():
 def g(t):
     '''Возвращает вектор значений в узлах Дирихле на шаге времени t.
     '''
-    return np.sin(np.arange(len(dir_nodes))) * 5 / (1 + 10 * t)
+    return np.zeros(len(dir_nodes))
 
 
 def f(t):
     '''Возвращает вектор значений f на шаге времени t.
     '''
-    return np.sin(np.arange(len(ind_nodes))) / (1 + 10 * t)
+    return np.zeros(len(ind_nodes))
 
 
 def u0():
@@ -171,15 +171,15 @@ T_ind = T[:, ind_nodes]
 # задаём начальные условия
 t = 0
 u = u0()
-
+u_maxes = [max(u)]
 # ==================================================================================================
 # строим графики
-'''plt.ion()
-fig = plt.figure()
-ax = fig.gca(projection='3d')
+#plt.ion()
+#fig = plt.figure()
+#ax = fig.gca(projection='3d')
 for i in range(timesteps):
-    ax.clear()
-    ax.text2D(0.05, 0.95, "t = {}".format(t), transform=ax.transAxes)
+    '''ax.clear()
+    ax.text2D(0.05, 0.95, "t = {:0.3g}".format(t), transform=ax.transAxes)
     X = np.arange(x_min, x_max, xh)
     Y = np.arange(y_min, y_max, yh)
     X, Y = np.meshgrid(X, Y)
@@ -193,5 +193,8 @@ for i in range(timesteps):
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
     plt.pause(0.1)'''
-plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
+    u = step(u)
+    t += th
+    u_maxes.append(max(u))
+plt.plot(u_maxes)
 plt.show()

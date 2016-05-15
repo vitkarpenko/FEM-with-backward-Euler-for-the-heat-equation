@@ -13,7 +13,7 @@ y_min = 0
 y_max = 1
 
 # на сколько частей делится каждая сторона пластинки при построении сетки
-grid_density = 20
+grid_density = 30
 xh = (x_max - x_min) / grid_density
 yh = (y_max - y_min) / grid_density
 
