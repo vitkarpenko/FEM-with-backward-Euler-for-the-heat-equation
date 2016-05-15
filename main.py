@@ -172,8 +172,9 @@ def analytical_u(x, y, t):
 # строим график скорости сходимости
 
 diffs = []
-for grid_density in range(3, 15):
-
+for timesteps in range(4, 60):
+    grid_density = 5
+    th = t_max / timesteps
     # величина шага по пространству
     xh = (x_max - x_min) / grid_density
     yh = (y_max - y_min) / grid_density
@@ -216,7 +217,7 @@ for grid_density in range(3, 15):
             y = j / (grid_density - 1)
             analytical_us.append(analytical_u(x, y, t))
 
-    diffs.append(max(np.abs(analytical_us - u)))
+    diffs.append(max(np.abs(analytical_us - u)) / th)
 
-plt.plot(diffs)
+plt.plot(diffs[5:])
 plt.show()

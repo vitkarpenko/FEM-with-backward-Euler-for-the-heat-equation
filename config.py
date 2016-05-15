@@ -14,6 +14,6 @@ y_max = 1
 
 # шаг th по времени постоянен
 # отсчёт начинается с t0 = 0
-t_max = 1
-timesteps = 10
+t_max = 10
+timesteps = 20
 th = t_max / timesteps
