@@ -11,6 +11,9 @@
 \usepackage{sectsty} % Allows customizing section commands
 \allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
 
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+
 \usepackage{fancyhdr} % Custom headers and footers
 \pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
 \fancyhead{} % No page header - if you want one, create it in the same way as the footers below
@@ -50,8 +53,7 @@
 
 \maketitle % Print the title
 
-\section{Постановка задачи}
-\subsection{Исходная дифференциальная задача}
+\section{Исходная дифференциальная задача}
     \[
         \begin{cases}
             u_t = \bigtriangleup u + f& \text{на $\Omega \times (0, \inf)$,} \\
@@ -61,6 +63,37 @@
     \]
 Здесь $\Omega$ - квадратная область в плоскости $(x, y)$ с левым нижним углом в $(0, 0)$ и правым верхним в $(1, 1)$.
 $\Gamma$ - граница пластинки. Отсчёт времени начинается в $t_0 = 0$. Необходимо найти $u(\bm{x}, t) = u(x, y, t)$.
-\subsection{Дискретизация}
-Разбиение по времени может быть произвольным $0 = t_0 < t_1 < t_2 < ... < t_n < ...$, но в данном случае удобнее пользоваться постоянным шагом (это будет видно позже).
+\section{Дискретизация}
+\subsection{Дискретизация по времени и задача в слабой форме}
+Разбиение по времени может быть произвольным $0 = t_0 < t_1 < t_2 < ... < t_n < ...$, но в данном случае удобнее пользоваться постоянным шагом (позже будет видно почему), хотя при необходимости метод легко модифицируется для вычисления временных шагов в зависимости от поведения численного решения или производительности метода в данный момент времени. Таким образом $\delta_n = t_{n+1} - t_n = const$.
+При этом $f_n = f(\cdot, t_n) : \Omega \rightarrow \mathbb{R}$, $g_n = g(\cdot, t_n) : \Omega \rightarrow \mathbb{R}$.
+Для аппроксимации производной $u$ по $t$ используется следующая формула $\phi'(t_{n+1}) = \frac{\phi(t_{n+1}) - \phi(t_{n})}{t_{n+1} - t_{n}} = \frac{\phi(t_{n+1}) - \phi(t_{n})}{\delta_n}$, т.е. в нашем случае $\frac{u_{n+1} - u_n}{\delta_n} = \bigtriangleup u_{n+1} + f_{n+1}$.
+Тогда, применяя теорему Грина к $u_n$: $\int_{\Omega}(\bigtriangleup u_n)v + \int_{\Omega}\bigtriangledown u_n \bigtriangledown v = \int_{\Gamma}(\partial_n u_n)v$, откуда получаем формулировку задачи в слабой форме для вычисления $u_{n+1}$:
+    \[
+        \begin{cases}
+            \text{найти } u_{n+1} \in H^1(\Omega)\text{, такую, что:} \\
+            u_{n+1} = g_{n+1}& \text{на $\Gamma$,} \\
+            \delta_n \int_{\Omega} \bigtriangledown u_{n+1} \bigtriangledown v + \int_{\Omega} u_{n+1}v = \int_{\Omega} u_{n}v + \delta_n \int_{\Omega} f_{n}v& \forall v \in H^1_0(\Omega).
+        \end{cases}
+    \]
+\subsection{Дискретизация по пространству}
+Данная квадратная пластинка разбивается на треугольники, имеющие в пересечениях только общие вершины или общие рёбра.
+Используется самая простая вариация метода конечных элементов с треугольными элементами первой степени, сетка выглядит, например, так: \\
+\includegraphics[scale=0.32]{mesh} \\
+Мы имеем пространство функций $V_h \in H^1(\Omega)$ определяемых значениями в узлах триангуляции, узлы разбиения, узлы с граничными условиями Дирихле (все граничные в данном случае) и подпространство $V^0_h = V_h \cap H^1_0(\Omega) = \{v_h \in V_h | v_h = 0 \text{ на $\Gamma$.}\}$ Узлы пронумерованы и их номера содержатся в двух списках - Dir для граничных и Ind для внутренних. Теперь мы заменяем все элементы слабой формулировки на их дискретные аналоги:
+    \[
+        \begin{cases}
+            \text{найти } u^h_{n+1} \in V_h\text{, такую, что:} \\
+            u^h_{n+1}(p_i) = g_{n+1}(p_i)& \text{для $\forall i \in Dir$,} \\
+            \delta_n \int_{\Omega} \bigtriangledown u^h_{n+1} \bigtriangledown v_h + \int_{\Omega} u^h_{n+1}v_h = \int_{\Omega} u^h_{n}v_h + \delta_n \int_{\Omega} f_{n}v_h& \forall v_h \in V^0_h.
+        \end{cases}
+    \]
+Тогда, если $W$ - матрица жёсткости, а $M$ - матрица масс, то каждый шаг решения можно записать как:
+    \[
+        \begin{cases}
+            u^{n+1}_{Dir} = g_{n+1}, \\
+            (\delta_n W + M) u^{n+1} = M u^n - f_n.
+        \end{cases}
+    \]
+\section{Анализ устойчивости}
 \end{document}

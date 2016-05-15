@@ -174,7 +174,7 @@ u = u0()
 
 # ==================================================================================================
 # строим графики
-plt.ion()
+'''plt.ion()
 fig = plt.figure()
 ax = fig.gca(projection='3d')
 for i in range(timesteps):
@@ -192,4 +192,6 @@ for i in range(timesteps):
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
 
-    plt.pause(0.1)
+    plt.pause(0.1)'''
+plt.triplot(nodes_coords[:,0], nodes_coords[:,1], triangles)
+plt.show()
