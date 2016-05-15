@@ -102,13 +102,13 @@ def triangle_stiff_matrix(K):
     return T_K
 
 
-def W():
+def generate_W():
     '''Основная матрица жёсткости (см. отчёт).
     '''
     return np.sum(triangle_stiff_matrix(K) for K in range(len(triangles)))
 
 
-def M():
+def generate_M():
     '''Основная матрица масс (см. отчёт).
     '''
     return np.sum(triangle_mass_matrix(K) for K in range(len(triangles)))
@@ -153,61 +153,70 @@ def step(u):
     return u_next
 
 
-def u(x, y, t):
+def analytical_u(x, y, t):
     def _lambda(n, m):
         return - (np.pi ** 2) * (n ** 2 + m ** 2)
     def _sum(prec):
         res = 0
         for n in range(1, prec):
-            for m in range(prec):
+            for m in range(1, prec):
                 res += (((-1) ** n - 1) * ((-1) ** m - 1)
-                        * np.exp ** (_lambda(n, m) * t)
+                        * np.e ** (_lambda(n, m) * t)
                         * np.sin(np.pi * x * n) * np.sin(np.pi * y * m)
                         / n ** 3 / m ** 3)
         return res
-    return 16 / (np.pi ** 6) * _sum(5)
+    return 16 / (np.pi ** 6) * _sum(10)
+
 
 # ==================================================================================================
+# строим график скорости сходимости
 
-# dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
-# ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
-nodes_coords = generate_nodes(x_min, x_max, y_min, y_max, grid_density)
-dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in range(grid_density)
-                                                                if i == 0 or i == grid_density - 1
-                                                                or j == 0 or j == grid_density - 1])
-ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
+diffs = []
+for grid_density in range(3, 15):
 
-# триангулируем
-triangles = triangulate_rectangle(nodes_coords)
+    # величина шага по пространству
+    xh = (x_max - x_min) / grid_density
+    yh = (y_max - y_min) / grid_density
 
-# строим основные матрицу
-M = M()
-W = W()
-T = M + W * th
-T_dir = T[:, dir_nodes]
-T_ind = T[:, ind_nodes]
+    # общее количество узлов
+    nNod = grid_density ** 2
 
-# задаём начальные условия
-t = 0
-u = u0()
-# ==================================================================================================
-# строим графики
-plt.ion()
-fig = plt.figure()
-ax = fig.gca(projection='3d')
-for i in range(timesteps):
-    ax.clear()
-    ax.text2D(0.05, 0.95, "t = {:0.3g}".format(t), transform=ax.transAxes)
-    X = np.arange(x_min, x_max, xh)
-    Y = np.arange(y_min, y_max, yh)
-    X, Y = np.meshgrid(X, Y)
-    u = step(u)
-    t += th
-    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.gnuplot,
-                       linewidth=0, antialiased=False)
-    ax.set_zlim(-0.1, 0.1)
+    # dir_nodes - номера узлов с условием Дирихле, в данном случае внешние
+    # ind_nodes - номера свободных, т.е. в данном случае внутренних узлов
+    nodes_coords = generate_nodes(x_min, x_max, y_min, y_max, grid_density)
+    dir_nodes = np.array([i + grid_density * j for j in range(grid_density) for i in range(grid_density)
+                                                                    if i == 0 or i == grid_density - 1
+                                                                    or j == 0 or j == grid_density - 1])
+    ind_nodes = np.array([x for x in range(grid_density ** 2) if x not in dir_nodes])
 
-    ax.zaxis.set_major_locator(LinearLocator(10))
-    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+    # триангулируем
+    triangles = triangulate_rectangle(nodes_coords)
 
-    plt.pause(0.3)
+    # строим основные матрицу
+    M = generate_M()
+    W = generate_W()
+    T = M + W * th
+    T_dir = T[:, dir_nodes]
+    T_ind = T[:, ind_nodes]
+
+    # задаём начальные условия
+    t = 0
+    u = u0()
+
+    # проходим по времени
+    for i in range(timesteps):
+        t += th
+        u = step(u)
+
+    # вычисляем аналитическое решение в узлах сетки
+    analytical_us = []
+    for i in range(grid_density):
+        for j in range(grid_density):
+            x = i / (grid_density - 1)
+            y = j / (grid_density - 1)
+            analytical_us.append(analytical_u(x, y, t))
+
+    diffs.append(max(np.abs(analytical_us - u)))
+
+plt.plot(diffs)
+plt.show()
