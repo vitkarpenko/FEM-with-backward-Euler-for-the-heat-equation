@@ -52,7 +52,7 @@
 \begin{document}
 
 \maketitle % Print the title
-
+\newpage
 \section{Исходная дифференциальная задача}
     \[
         \begin{cases}
@@ -95,6 +95,7 @@ $\Gamma$ - граница пластинки. Отсчёт времени нач
             (\delta_n W + M) u^{n+1} = M u^n - f_n.
         \end{cases}
     \]
+\newpage
 \section{Анализ устойчивости}
 Упростим задачу, положив $f$ и $g$ не зависящими от времени. Тогда:
     \[
@@ -121,15 +122,52 @@ $\Gamma$ - граница пластинки. Отсчёт времени нач
 Решение (полученное разделением переменных) $$u(\bm{x}, t) = u_{lim}(\bm{x}) + \sum_{k=1}^{\inf} c_k e^{-\lambda_k t} \phi_k(\bm{x})$$, где $c_k = \int _\Omega (u_0 - u_{lim}) \phi_k$. Эта формула показывает, что решение убывает экспоненциально быстро к устойчивому решению.
 
 Если мы рассматриваем стремящиеся к нулю граничные условия и $f = 0$, а так же фиксированный шаг по времени, то $u^{n+1}$ получается следующим образом: $$(\delta W + M) u^{n+1} = M u^n$$ при начальном состоянии $u^0$. Если $u^0 = \phi_k$, то собственные вектора удовлетворяют уравнению $$(\delta W + M) \phi_k = (1 + \lambda_{h, k}) M \phi_k$$ Тогда легко показать, что $$u^n = (1 + \lambda_{h, k})^{-n} \phi_k$$ Т.к. $0 < (1 + \lambda_{h, k})^{-1} < 1$ метод устойчив.
-
+\newpage
 \section{Решение}
+\subsection{Инструменты}
 Для решения использовался язык Python и библиотеки matplotlib для построения графиков и numpy для более быстрой и удобной работы с большими объёмами численной информации.
+\subsection{Проверка корректности и скорость сходимости}
 Для проверки корректности решения и определения скорости сходимости исследуем следующую задачу:
 $$u_t(x, y, t) = u_{xx}(x, y, t) + u_{yy}(x, y, t), t > 0, (x, y) \in [0, 1] \times [0, 1]$$
 $$u(0, y, t) = 0, u(1, y, t) = 0, u(x, 0, t) = 0, u(x, 1, t) = 0$$
 $$u(x, y, 0) = x(1 - x)y(1-y)$$
 Аналитическое решение имеет вид (выкладки с его получением достаточно объёмны и в отчёте не приводятся):
 $$u(x, y, t) = \frac{16}{\pi^6} \sum^{\inf}_{n,m=1} \frac{((-1)^n - 1)((-1)^m - 1)e^{\lambda_{n,m}t}}{n^3m^3} \sin{\pi n x} \sin{\pi m y}$$
-где $\lambda_{n,m} = - \pi^2(n^2 + m^2)$. Зафиксируем момент времени $t = 1$ и сделаем 10 шагов из $t_0 = 0$ для достижения этого значения. Затем будем мельчить сетку и смотреть, как ведёт себя норма разности численного и аналитического решений.
-
+где $\lambda_{n,m} = - \pi^2(n^2 + m^2)$. Зафиксируем момент времени $t = 1$ и сетку. Затем будем мельчить шаг по времени и смотреть, как ведёт себя норма разности численного и аналитического решений по отношению к шагу по времени. Из графика хорошо видно, что значение отношения выходит на константу - первый порядок сходимости. \\
+\includegraphics[scale=0.5]{t_order} \\
+\newpage
+\subsection{Иллюстрация решения}
+\begin{figure}[!htb]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{0}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{1}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{2}
+\endminipage
+\end{figure}
+\begin{figure}[!htb]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{3}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{4}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{5}
+\endminipage
+\end{figure}
+\begin{figure}[!htb]
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{6}
+\endminipage\hfill
+\minipage{0.32\textwidth}
+  \includegraphics[width=\linewidth]{7}
+\endminipage\hfill
+\minipage{0.32\textwidth}%
+  \includegraphics[width=\linewidth]{8}
+\endminipage
+\end{figure}
 \end{document}
