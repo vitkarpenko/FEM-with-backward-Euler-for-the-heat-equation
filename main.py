@@ -222,3 +222,25 @@ for timesteps in range(5, 50, 5):
 plt.plot(diffs, color='royalblue', lw=2)
 plt.axhline(y=(diffs[-1] * 0.97), ls='--', color='grey')
 plt.show()
+
+'''
+plt.ion()
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+for i in range(timesteps):
+    ax.clear()
+    ax.text2D(0.05, 0.95, "t = {}".format(t), transform=ax.transAxes)
+    X = np.arange(x_min, x_max, xh)
+    Y = np.arange(y_min, y_max, yh)
+    X, Y = np.meshgrid(X, Y)
+    u = step(u)
+    t += th
+    surf = ax.plot_surface(X, Y, u.reshape((grid_density, grid_density)), rstride=1, cstride=1, cmap=cm.gnuplot,
+                       linewidth=0, antialiased=False)
+    ax.set_zlim(-10, 10)
+
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+    plt.pause(0.1)
+'''
