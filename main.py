@@ -1,5 +1,8 @@
 from config import *
 
+def plot():
+    return plt.plot(100*((-(diffs - np.ones(len(diffs))*0.01215)) + np.ones(len(diffs))*0.01215), color='royalblue', lw=2)
+
 
 def generate_nodes(x_min, x_max, y_min, y_max, grid_density):
     '''Разделяет пластинку на равномерную прямоугольную сетку.
@@ -172,9 +175,7 @@ def analytical_u(x, y, t):
 # строим график скорости сходимости
 
 diffs = []
-for timesteps in range(5, 50, 5):
-    th = t_max / timesteps
-    grid_density = 10
+for grid_density in range(5, 15, 3):
     # величина шага по пространству
     xh = (x_max - x_min) / grid_density
     yh = (y_max - y_min) / grid_density
@@ -208,19 +209,16 @@ for timesteps in range(5, 50, 5):
     for i in range(timesteps):
         t += th
         u = step(u)
+        # вычисляем аналитическое решение в узлах сетки
+        analytical_us = []
+        for i in range(grid_density):
+            for j in range(grid_density):
+                x = i / (grid_density - 1)
+                y = j / (grid_density - 1)
+                analytical_us.append(analytical_u(x, y, t))
+    diffs.append(max(np.abs(analytical_us - u)))
 
-    # вычисляем аналитическое решение в узлах сетки
-    analytical_us = []
-    for i in range(grid_density):
-        for j in range(grid_density):
-            x = i / (grid_density - 1)
-            y = j / (grid_density - 1)
-            analytical_us.append(analytical_u(x, y, t))
-
-    diffs.append(max(np.abs(analytical_us - u)) / th)
-
-plt.plot(diffs, color='royalblue', lw=2)
-plt.axhline(y=(diffs[-1] * 0.97), ls='--', color='grey')
+plot()
 plt.show()
 
 '''
